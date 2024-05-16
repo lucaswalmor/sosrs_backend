@@ -36,6 +36,7 @@ class InstituicaoController extends Controller
 
     public function pets($nomeInstituicao)
     {
+        //teste
         $instituicao = Instituicao::with('pets')->where('nome_instituicao', $nomeInstituicao)->first();
 
         $dadosInstituicao = [
