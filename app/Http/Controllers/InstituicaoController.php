@@ -12,9 +12,25 @@ use Illuminate\Support\Facades\Validator;
 
 class InstituicaoController extends Controller
 {
-    public function instituicoes()
+    public function instituicoes(Request $request)
     {
-        $instituicoes = Instituicao::all();
+        $nome = $request->input('nome');
+        $cidade = $request->input('cidade');
+
+        $query = Instituicao::query();
+
+        if ($nome) {
+            $query->where('nome_instituicao', 'LIKE', '%' . $nome . '%');
+        }
+
+        if ($cidade) {
+            $query->where('cidade', 'LIKE', '%' . $cidade . '%');
+        }
+
+        $query->orderBy('nome_instituicao', 'asc');
+
+        $instituicoes = $query->get();
+        // $instituicoes = $query->paginate(10);
 
         return $instituicoes->map(function ($instituicao) {
             return [
@@ -34,7 +50,89 @@ class InstituicaoController extends Controller
         ];
     }
 
-    public function pets($nomeInstituicao)
+    public function pets(Request $request, $nomeInstituicao)
+    {
+        $query = Instituicao::with(['pets' => function ($query) use ($request) {
+            // Filtros para os pets
+            $nome = $request->input('nome');
+            $especie = $request->input('especie');
+            $outra_especie = $request->input('outra_especie');
+            $porte = $request->input('porte');
+            $pelagem = $request->input('pelagem');
+            $raca = $request->input('raca');
+            $status = $request->input('status');
+
+            if ($nome) {
+                $query->where('nome', 'LIKE', '%' . $nome . '%');
+            }
+
+            if ($especie) {
+                $query->where('especie', $especie);
+            }
+
+            if ($outra_especie && $outra_especie == 'Outro') {
+                $query->where('outra_especie', $outra_especie);
+            }
+
+            if ($porte) {
+                $query->where('porte', $porte);
+            }
+
+            if ($pelagem) {
+                $query->where('pelagem', $pelagem);
+            }
+
+            if ($raca) {
+                $query->where('raca', $raca);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $query->orderBy('nome', 'asc');
+        }])->where('nome_instituicao', $nomeInstituicao);
+
+        // Adicione a ordenação aqui
+        $query->orderBy('nome_instituicao', 'asc');
+
+        $instituicao = $query->first();
+
+        $dadosInstituicao = [
+            'nome_instituicao' => $instituicao->nome_instituicao,
+            'instagram' => $instituicao->instagram,
+            'whatsapp' => $instituicao->whatsapp,
+            'email' => $instituicao->email,
+            'cep' => $instituicao->cep,
+            'estado' => $instituicao->estado,
+            'cidade' => $instituicao->cidade,
+            'bairro' => $instituicao->bairro,
+            'rua' => $instituicao->rua,
+            'numero' => $instituicao->numero,
+            'complemento' => $instituicao->complemento,
+            'path_logo' => $instituicao->path_logo,
+        ];
+
+        $pets = $instituicao->pets->map(function ($pet) {
+            return [
+                'id' => $pet->id,
+                'nome' => $pet->nome,
+                'porte' => $pet->porte,
+                'pelagem' => $pet->pelagem,
+                'raca' => $pet->raca,
+                'foto' => $pet->foto,
+                'encontrado' => $pet->encontrado,
+                'descricao' => $pet->descricao,
+                'status' => $pet->status,
+                'especie' => $pet->especie,
+                'outra_especie' => $pet->outra_especie,
+            ];
+        });
+
+        return response()->json(['pets' => $pets, 'instituicao' => $dadosInstituicao]);
+    }
+
+    public function pets2($nomeInstituicao)
     {
         //teste
         $instituicao = Instituicao::with('pets')->where('nome_instituicao', $nomeInstituicao)->first();

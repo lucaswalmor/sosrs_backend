@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InstituicaoController;
+use App\Http\Controllers\PetsInstituicaoController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->group(function() {
     Route::controller(InstituicaoController::class)->group(function() {
         Route::post('cadastro-pet/{nomeInstituicao}', 'cadastroPet');
+    });
+
+    Route::controller(PetsInstituicaoController::class)->group(function() {
+        Route::put('atualizar-status-pet', 'atualizarStatusPet');
+        Route::delete('excluir-pet/{petId}', 'excluirPet');
     });
 });
 
